@@ -111,15 +111,15 @@ impl Drop for FileHandle {
 }
 
 impl Exercise {
-    pub fn compile(&self) -> Result<CompiledExercise, ExerciseOutput> {
+    pub fn compile(&self) -> Result<CompiledExercise<'_>, ExerciseOutput> {
         let cmd = match self.mode {
             Mode::Compile => Command::new("rustc")
-                .args(&[self.path.to_str().unwrap(), "-o", &temp_file()])
+                .args([self.path.to_str().unwrap(), "-o", &temp_file()])
                 .args(RUSTC_COLOR_ARGS)
                 .args(RUSTC_EDITION_ARGS)
                 .output(),
             Mode::Test => Command::new("rustc")
-                .args(&["--test", self.path.to_str().unwrap(), "-o", &temp_file()])
+                .args(["--test", self.path.to_str().unwrap(), "-o", &temp_file()])
                 .args(RUSTC_COLOR_ARGS)
                 .args(RUSTC_EDITION_ARGS)
                 .output(),
@@ -145,7 +145,7 @@ path = "{}.rs""#,
                 // compilation failure, this would silently fail. But we expect
                 // clippy to reflect the same failure while compiling later.
                 Command::new("rustc")
-                    .args(&[self.path.to_str().unwrap(), "-o", &temp_file()])
+                    .args([self.path.to_str().unwrap(), "-o", &temp_file()])
                     .args(RUSTC_COLOR_ARGS)
                     .args(RUSTC_EDITION_ARGS)
                     .output()
@@ -155,14 +155,14 @@ path = "{}.rs""#,
                 // This is already fixed on Clippy's master branch. See this issue to track merging into Cargo:
                 // https://github.com/rust-lang/rust-clippy/issues/3837
                 Command::new("cargo")
-                    .args(&["clean", "--manifest-path", CLIPPY_CARGO_TOML_PATH])
+                    .args(["clean", "--manifest-path", CLIPPY_CARGO_TOML_PATH])
                     .args(RUSTC_COLOR_ARGS)
                     .output()
                     .expect("Failed to run 'cargo clean'");
                 Command::new("cargo")
-                    .args(&["clippy", "--manifest-path", CLIPPY_CARGO_TOML_PATH])
+                    .args(["clippy", "--manifest-path", CLIPPY_CARGO_TOML_PATH])
                     .args(RUSTC_COLOR_ARGS)
-                    .args(&["--", "-D", "warnings", "-D", "clippy::float_cmp"])
+                    .args(["--", "-D", "warnings", "-D", "clippy::float_cmp"])
                     .output()
             },
             Mode::BuildScript => {
@@ -184,7 +184,7 @@ path = "{}.rs""#,
                 fs::write(BUILD_SCRIPT_CARGO_TOML_PATH, cargo_toml).expect(cargo_toml_error_msg);
 
                 Command::new("cargo")
-                    .args(&["test", "--manifest-path", BUILD_SCRIPT_CARGO_TOML_PATH])
+                    .args(["test", "--manifest-path", BUILD_SCRIPT_CARGO_TOML_PATH])
                     .output()
             }
         }
@@ -218,7 +218,7 @@ path = "{}.rs""#,
             _ => "",
         };
         println!("pa={}", temp_file());
-        let cmd = Command::new(&temp_file())
+        let cmd = Command::new(temp_file())
             .arg(arg)
             .output()
             .expect("Failed to run 'run' command");
@@ -295,7 +295,7 @@ impl Display for Exercise {
 
 #[inline]
 fn clean() {
-    let _ignored = remove_file(&temp_file());
+    let _ignored = remove_file(temp_file());
 }
 
 #[cfg(test)]

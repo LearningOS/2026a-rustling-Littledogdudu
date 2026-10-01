@@ -3,7 +3,6 @@
 	This question requires you to use a stack to achieve a bracket match
 */
 
-// I AM NOT DONE
 #[derive(Debug)]
 struct Stack<T> {
 	size: usize,
@@ -32,7 +31,11 @@ impl<T> Stack<T> {
 	}
 	fn pop(&mut self) -> Option<T> {
 		// TODO
-		None
+		let value = self.data.pop();
+        if value.is_some() {
+            self.size -= 1;
+        }
+        value
 	}
 	fn peek(&self) -> Option<&T> {
 		if 0 == self.size {
@@ -50,8 +53,8 @@ impl<T> Stack<T> {
 		IntoIter(self)
 	}
 	fn iter(&self) -> Iter<T> {
-		let mut iterator = Iter { 
-			stack: Vec::new() 
+		let mut iterator = Iter {
+			stack: Vec::new()
 		};
 		for item in self.data.iter() {
 			iterator.stack.push(item);
@@ -59,8 +62,8 @@ impl<T> Stack<T> {
 		iterator
 	}
 	fn iter_mut(&mut self) -> IterMut<T> {
-		let mut iterator = IterMut { 
-			stack: Vec::new() 
+		let mut iterator = IterMut {
+			stack: Vec::new()
 		};
 		for item in self.data.iter_mut() {
 			iterator.stack.push(item);
@@ -74,7 +77,7 @@ impl<T: Clone> Iterator for IntoIter<T> {
 	fn next(&mut self) -> Option<Self::Item> {
 		if !self.0.is_empty() {
 			self.0.size -= 1;self.0.data.pop()
-		} 
+		}
 		else {
 			None
 		}
@@ -99,16 +102,51 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 	}
 }
 
+impl From<&Stack<u8>> for Stack<char> {
+    fn from(value: &Stack<u8>) -> Self {
+        Stack {
+            size: value.size,
+            data: value.data.iter().map(|&x| x as char).collect(),
+        }
+    }
+}
+
 fn bracket_match(bracket: &str) -> bool
 {
-	//TODO
-	true
+    let mut stack = Stack::new();
+    println!("原始字符串：{}", bracket);
+
+	for b in bracket.bytes() {
+        match b {
+            b'(' => stack.push(b')'),
+            b'[' => stack.push(b']'),
+            b'{' => stack.push(b'}'),
+            b')' | b']' | b'}' => {
+                println!("============  {}  =============", b as char);
+                println!("原stack：{:?}", Stack::<char>::from(&stack));
+                if stack.pop() != Some(b) {
+                    return false;
+                }
+                println!("弹出后stack：{:?}", Stack::<char>::from(&stack));
+                // if let Some(res) = stack.pop() {
+                //     println!("pop值：{}", res as char);
+                // } else {
+                //     println!("pop值：None");
+                // }
+                println!("================================");
+            },
+            _ => ()
+        }
+    }
+
+    println!("最终结果：{}", stack.is_empty());
+    stack.is_empty()
 }
 
 #[cfg(test)]
 mod tests {
 	use super::*;
-	
+
 	#[test]
 	fn bracket_matching_1(){
 		let s = "(2+3){func}[abc]";

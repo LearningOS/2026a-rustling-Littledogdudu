@@ -1,6 +1,10 @@
 /*
-	queue
-	This question requires you to use queues to implement the functionality of the stack
+    queue
+    This question requires you to use queues to implement the functionality of the stac
+
+    Solution: keep every element in `q1`. To pop, move all but the last element
+    into `q2`, dequeue the last one (the stack top), then swap the two queues.
+    push is O(1), pop is O(n) — the usual two-queue trade-off.
 */
 
 #[derive(Debug)]
@@ -51,55 +55,64 @@ impl<T> Default for Queue<T> {
     }
 }
 
-pub struct myStack<T>
-{
-	//TODO
-	q1:Queue<T>,
-	// q2:Queue<T>
+#[allow(non_camel_case_types)]
+pub struct myStack<T> {
+    q1: Queue<T>,
+    q2: Queue<T>,
 }
 impl<T> myStack<T> {
     pub fn new() -> Self {
         Self {
-			//TODO
-			q1:Queue::<T>::new(),
-			// q2:Queue::<T>::new()
+            q1: Queue::<T>::new(),
+            q2: Queue::<T>::new(),
         }
     }
+
     pub fn push(&mut self, elem: T) {
-        //TODO
-        // 时间复杂度上减不了，只能从空间复杂度下手，在原q1上做翻转，不借用O(n)的临时内存
         self.q1.enqueue(elem);
-
-        let length= self.q1.size();
-
-        // [队列入]21[队列出] -> [队列入]12[队列出]
-        // [队列入]312[队列出] -> [队列入]231[队列出] -> [队列入]123[队列出]
-        for _ in 0..length - 1 {
-            if let Ok(elem) = self.q1.dequeue() {
-                self.q1.enqueue(elem);
-            }
-        }
     }
+
     pub fn pop(&mut self) -> Result<T, &str> {
-        //TODO
-        self.q1.dequeue().map_err(|_| {
-            "Stack is empty"
-        })
+        if self.q1.is_empty() {
+            return Err("Stack is empty");
+        }
+
+        // Rotate every element except the last one into the helper queue.
+        while self.q1.size() > 1 {
+            // `dequeue` ties its `&str` error to `&mut self`, so handle it here
+            // instead of with `?` (which would keep q1 borrowed).
+            let elem = match self.q1.dequeue() {
+                Ok(elem) => elem,
+                Err(_) => break,
+            };
+            self.q2.enqueue(elem);
+        }
+
+        // The last element of q1 is the top of the stack.
+        let top = match self.q1.dequeue() {
+            Ok(top) => top,
+            Err(_) => return Err("Stack is empty"),
+        };
+
+        // q2 now holds all remaining elements; make it the primary queue again.
+        std::mem::swap(&mut self.q1, &mut self.q2);
+
+        Ok(top)
     }
+
     pub fn is_empty(&self) -> bool {
-		//TODO
-        self.q1.size() == 0usize
+        self.q1.is_empty() && self.q2.is_empty()
     }
 }
 
 #[cfg(test)]
 mod tests {
-	use super::*;
+    use super::*;
 
-	#[test]
-	fn test_queue(){
-		let mut s = myStack::<i32>::new();
-		assert_eq!(s.pop(), Err("Stack is empty"));
+    #[test]
+    fn test_queue() {
+        let mut s = myStack::<i32>::new();
+        assert_eq!(s.pop(), Err("Stack is empty"));
         s.push(1);
         s.push(2);
         s.push(3);
@@ -113,5 +126,5 @@ mod tests {
         assert_eq!(s.pop(), Ok(1));
         assert_eq!(s.pop(), Err("Stack is empty"));
         assert_eq!(s.is_empty(), true);
-	}
+    }
 }

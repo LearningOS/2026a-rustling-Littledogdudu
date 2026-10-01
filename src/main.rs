@@ -198,7 +198,7 @@ async fn main() {
                 let filter_cond = filters
                     .split(',')
                     .filter(|f| !f.trim().is_empty())
-                    .any(|f| e.name.contains(&f) || fname.contains(&f));
+                    .any(|f| e.name.contains(f) || fname.contains(f));
                 let status = if e.looks_done() {
                     exercises_done += 1;
                     "Done"
@@ -291,7 +291,7 @@ async fn main() {
                 let inner_exercise = exercise;
                 let c_mutex = Arc::clone(&rights);
                 let exercise_check_list_ref = Arc::clone(&exercise_check_list);
-                let _verbose = verbose.clone();
+                let _verbose = verbose;
                 let t = tokio::task::spawn( async move {
                     match run(&inner_exercise, true) {
                     // match verify(vec![&inner_exercise], (0, 1), true, true) {
@@ -480,8 +480,8 @@ fn watch(
     loop {
         match rx.recv_timeout(Duration::from_secs(1)) {
             Ok(event) => match event {
-                DebouncedEvent::Create(b) | DebouncedEvent::Chmod(b) | DebouncedEvent::Write(b) => {
-                    if b.extension() == Some(OsStr::new("rs")) && b.exists() {
+                DebouncedEvent::Create(b) | DebouncedEvent::Chmod(b) | DebouncedEvent::Write(b)
+                    if b.extension() == Some(OsStr::new("rs")) && b.exists() => {
                         let filepath = b.as_path().canonicalize().unwrap();
                         let pending_exercises = exercises
                             .iter()
@@ -507,7 +507,6 @@ fn watch(
                             }
                         }
                     }
-                }
                 _ => {}
             },
             Err(RecvTimeoutError::Timeout) => {
@@ -524,7 +523,7 @@ fn watch(
 
 fn rustc_exists() -> bool {
     Command::new("rustc")
-        .args(&["--version"])
+        .args(["--version"])
         .stdout(Stdio::null())
         .spawn()
         .and_then(|mut child| child.wait())

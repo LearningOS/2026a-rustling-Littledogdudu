@@ -1,6 +1,10 @@
 /*
-	dfs
-	This problem requires you to implement a basic DFS traversal
+    dfs
+    This problem requires you to implement a basic DFS traversal
+
+    Solution: recursive DFS with a `HashSet` of visited vertices.
+    `HashSet::insert` returns `false` when the value was already present, so it
+    doubles as the visited check. O(V + E) time, O(V) space.
 */
 
 use std::collections::HashSet;
@@ -11,9 +15,7 @@ struct Graph {
 
 impl Graph {
     fn new(n: usize) -> Self {
-        Graph {
-            adj: vec![vec![]; n],
-        }
+        Graph { adj: vec![vec![]; n] }
     }
 
     fn add_edge(&mut self, src: usize, dest: usize) {
@@ -22,19 +24,13 @@ impl Graph {
     }
 
     fn dfs_util(&self, v: usize, visited: &mut HashSet<usize>, visit_order: &mut Vec<usize>) {
+        // `insert` returns false if `v` was already there -> it has been visited.
         if !visited.insert(v) {
-            // 一般不会插入失败，因为在visited.contains判断过，多一步提高容错
             return;
         }
-
         visit_order.push(v);
-
-        let next_node = &self.adj[v];
-
-        for &node in next_node {
-            if !visited.contains(&node) {
-                self.dfs_util(node, visited, visit_order);
-            }
+        for &next in &self.adj[v] {
+            self.dfs_util(next, visited, visit_order);
         }
     }
 
@@ -87,4 +83,3 @@ mod tests {
         assert_eq!(visit_order_disconnected, vec![3, 4]);
     }
 }
-

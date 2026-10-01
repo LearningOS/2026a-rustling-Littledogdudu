@@ -1,6 +1,11 @@
 /*
-	bfs
-	This problem requires you to implement a basic BFS algorithm
+    bfs
+    This problem requires you to implement a basic BFS algorithm
+
+    Solution: standard queue + `visited` flags, O(V + E) time, O(V) space.
+    The key detail is marking a node visited when it is *enqueued*, not when it
+    is dequeued — otherwise a node can be enqueued multiple times and the visit
+    order no longer matches the tests.
 */
 
 use std::collections::VecDeque;
@@ -13,9 +18,7 @@ struct Graph {
 impl Graph {
     // Create a new graph with n vertices
     fn new(n: usize) -> Self {
-        Graph {
-            adj: vec![vec![]; n],
-        }
+        Graph { adj: vec![vec![]; n] }
     }
 
     // Add an edge to the graph
@@ -26,23 +29,19 @@ impl Graph {
 
     // Perform a breadth-first search on the graph, return the order of visited nodes
     fn bfs_with_return(&self, start: usize) -> Vec<usize> {
-        if self.adj.is_empty() {
-            return vec![];
-        }
-        let mut pre_visit = VecDeque::new();
-        let mut visit_order = vec![];
+        let mut visit_order = Vec::new();
+        let mut visited = vec![false; self.adj.len()];
+        let mut queue = VecDeque::new();
 
-        visit_order.push(start);
-        pre_visit.push_back(start);
+        visited[start] = true;
+        queue.push_back(start);
 
-        while !pre_visit.is_empty() {
-            if let Some(node) = pre_visit.pop_front() {
-                let adj_ = &self.adj[node];
-                for &element in adj_ {
-                    if !visit_order.contains(&element) {
-                        visit_order.push(element);
-                        pre_visit.push_back(element);
-                    }
+        while let Some(node) = queue.pop_front() {
+            visit_order.push(node);
+            for &next in &self.adj[node] {
+                if !visited[next] {
+                    visited[next] = true; // mark on enqueue, not on dequeue
+                    queue.push_back(next);
                 }
             }
         }
@@ -50,7 +49,6 @@ impl Graph {
         visit_order
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -100,4 +98,3 @@ mod tests {
         assert_eq!(visited_order, vec![0]);
     }
 }
-

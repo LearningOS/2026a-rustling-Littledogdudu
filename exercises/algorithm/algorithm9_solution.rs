@@ -1,6 +1,11 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
+
+    Solution: a 1-indexed array-backed binary heap.
+    `items[0]` is an unused sentinel, so `parent = idx / 2` and children are
+    `2*idx` / `2*idx + 1`. `add` sifts up; `next` swaps the root with the last
+    element, pops it, and sifts down. O(log n) per operation.
 */
 
 use std::cmp::Ord;
@@ -12,6 +17,7 @@ where
 {
     count: usize,
     items: Vec<T>,
+    /// Returns true when its first argument should be closer to the root.
     comparator: fn(&T, &T) -> bool,
 }
 
@@ -36,17 +42,16 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
         self.count += 1;
         self.items.push(value);
         let mut idx = self.count;
 
+        // Sift up while the new element beats its parent.
         while idx > 1 {
-            let parent_idx = self.parent_idx(idx);
-
-            if (self.comparator)(&self.items[idx], &self.items[parent_idx]) {
-                self.items.swap(idx, parent_idx);
-                idx = parent_idx;
+            let parent = self.parent_idx(idx);
+            if (self.comparator)(&self.items[idx], &self.items[parent]) {
+                self.items.swap(idx, parent);
+                idx = parent;
             } else {
                 break;
             }
@@ -70,15 +75,14 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        let left_child_idx = self.left_child_idx(idx);
-        let right_child_idx = self.right_child_idx(idx);
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
 
-        if right_child_idx < self.count &&
-            (self.comparator)(&self.items[right_child_idx], &self.items[left_child_idx])
-        {
-            return right_child_idx;
+        if right <= self.count && (self.comparator)(&self.items[right], &self.items[left]) {
+            right
+        } else {
+            left
         }
-        return left_child_idx;
     }
 }
 
@@ -108,22 +112,24 @@ where
             return None;
         }
 
+        // Move the root to the end and pop it off.
         self.items.swap(1, self.count);
-        let result = self.items.pop();
+        let value = self.items.pop();
         self.count -= 1;
 
+        // Sift the new root down.
         let mut idx = 1;
         while self.children_present(idx) {
-            let child_index = self.smallest_child_idx(idx);
-            if (self.comparator)(&self.items[child_index], &self.items[idx]) {
-                self.items.swap(idx, child_index);
-                idx = child_index;
+            let child = self.smallest_child_idx(idx);
+            if (self.comparator)(&self.items[child], &self.items[idx]) {
+                self.items.swap(idx, child);
+                idx = child;
             } else {
                 break;
             }
         }
 
-        result
+        value
     }
 }
 
